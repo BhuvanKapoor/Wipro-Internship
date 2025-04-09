@@ -1,21 +1,33 @@
-import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression
-from statsmodels.tsa.arima.model import ARIMA
+import importlib
+from model_config import get_model_params
 
+def split_data(df,target_col, train_size=0.8):
+    train_df= df.iloc[:int(len(df)*train_size)]
+    test_df= df.iloc[int(len(df)*train_size):]
 
-def train_linear_regression(df):
-    X = df['Date'].map(pd.Timestamp.toordinal).values.reshape(-1,1)
-    y = df['moving_avg_centered'].fillna(0)
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    features_cols = [feature for feature in df.columns if feature!=target_col]
 
-    model_LR = LinearRegression()
-    model_LR.fit(X_train, y_train)
+    X_train = train_df[features_cols]
+    y_train = train_df[target_col]
+    X_test = test_df[features_cols]
+    y_test = test_df[target_col]
 
-    return model_LR, X_test, y_test
+    return X_train, X_test, y_train, y_test
 
-def train_ARIMA(df, order=(3,1,0), train_size=0.8):
-    train, test = df.iloc[:int(len(df)*0.8)].dropna(), df.iloc[int(len(df)*0.8):].dropna()
-    model_ARIMA = ARIMA(train['moving_avg_centered'])
-    model_ARIMA_fit = model_ARIMA.fit()
-    return model_ARIMA_fit, test['moving_avg_centered']
+def train_model(X_train, y_train, model_name):
+    model_config = get_model_params(model_name)
+    model_class_path = model_config["model_class"]
+    params = model_config['params']
+    module_path, class_name = model_class_path.rsplit('.',1)
+    module = importlib.import_module(module_path)
+    model_class = getattr(module, class_name)
+
+    if model_name.lower() == 'arima':
+        model = model_class(y_train, **params)
+        model = model.fit()
+    else:
+        model = model_class(**params)
+        model.fit(X_train, y_train)
+    
+    return model
+    

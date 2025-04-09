@@ -1,4 +1,15 @@
 import numpy as np
+import pandas as pd
+
+def handling_NaN_valus(df):
+    df = df.fillna(0)
+    return df
+
+def handling_date(df):
+    if 'Date' in df.columns:
+        df['Date'] = pd.to_datetime(df['Date'])
+        df['Date'] = df['Date'].values.astype('float64')
+    return df
 
 def create_moving_avg_centered(df, window, center):
     moving_avg_centered = df["Consumption"].rolling(window=window, center=center).mean()

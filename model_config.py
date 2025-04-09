@@ -1,12 +1,10 @@
 model_config = {
     'linear_reg': {
-        'model_class' : 'sklearn.linear_models.LinearRegression',
-        'params':{
-            'random_state': [42]
-        }
+        'model_class' : 'sklearn.linear_model.LinearRegression',
+        'params':{}
     },
     'arima':{
-        'model_class': 'statsmodels.tsa.arima.models.ARIMA',
+        'model_class': 'statsmodels.tsa.arima.model.ARIMA',
         'params': {
             'order': (3,1,0)
         }
